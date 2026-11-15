@@ -20,7 +20,9 @@ minor version may change the configuration and file formats.
 ### Changed
 
 - The repository moved to `alpine-ronin/airlock`: links, `install.sh`, `airlock update` and the Composer name point
-  there. Releases up to 0.6.1 are still checked against the former owner's attestations (#90, #91).
+  there. Releases up to 0.6.1 are still checked against the former owner's attestations (#90, #91). From 0.6.1 or
+  older, with the GitHub CLI logged in, `airlock update` refuses this release, whose attestation names the new
+  repository: install it with `install.sh` instead.
 
 ### Fixed
 
