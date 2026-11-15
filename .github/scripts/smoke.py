@@ -2,7 +2,8 @@
 
 The first call must return the form, sandboxed (bubblewrap or sandbox-exec); the retry with the signed state and "once" must run
 the command and return its output marked as data, saying --expect's text when given. --command and --output replace the
-command run and the output it must print.
+command run and the output it must print; --between runs a shell command between the form and the retry, such as an
+update of the binary the server runs from.
 """
 
 import json
@@ -32,12 +33,15 @@ def main():
     expected = options[options.index("--expect") + 1] if "--expect" in options else None
     command = options[options.index("--command") + 1] if "--command" in options else COMMAND
     output = options[options.index("--output") + 1] if "--output" in options else "airlock-smoke"
+    between = options[options.index("--between") + 1] if "--between" in options else None
     server = subprocess.Popen(sys.argv[separator + 1:], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     try:
         asked = call(server, 1, command, {})
         assert asked.get("resultType") == "input_required", asked
         message = asked["inputRequests"]["approval"]["params"]["message"]
         assert "Sandbox (bubblewrap)" in message or "Sandbox (sandbox-exec)" in message, message
+        if between is not None:
+            subprocess.run(between, shell=True, check=True)
 
         ran = call(server, 2, command, {"requestState": asked["requestState"], "inputResponses": {"approval": {"action": "accept", "content": {"decision": "once"}}}})
         text = ran["content"][0]["text"]
