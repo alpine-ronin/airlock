@@ -11,6 +11,7 @@ use App\Execution\CommandResult;
 use App\Execution\CommandRunner;
 use App\Execution\ProjectDirectory;
 use App\Execution\RegistriesProxyUnavailableException;
+use App\Grant\GrantMiss;
 use App\Grant\GrantRules;
 use App\Grant\Grants;
 use App\Grant\InvalidGrantsException;
@@ -36,6 +37,7 @@ use Mcp\Schema\Result\CallToolResult;
 use Mcp\Schema\Result\InputRequiredResult;
 use Mcp\Server\RequestContext;
 use Psr\Clock\ClockInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * Runs a command once the user has allowed it, or a grant covers it, and only in the sandbox.
@@ -67,6 +69,7 @@ final readonly class RunCommandTool
         private AuditLog $auditLog,
         private ProjectDirectory $projectDirectory,
         private ClockInterface $clock,
+        private RateLimiterFactoryInterface $grantedCommandsLimiter,
     ) {
     }
 
@@ -103,9 +106,13 @@ final readonly class RunCommandTool
         }
 
         if ($isCovered) {
-            $run = $assessment->needsSshAgent ? $this->runner->runReachingARemote(...) : $this->runner->run(...);
+            $rateLimit = $this->grantedCommandsLimiter->create()->consume();
+            if ($rateLimit->isAccepted()) {
+                $run = $assessment->needsSshAgent ? $this->runner->runReachingARemote(...) : $this->runner->run(...);
 
-            return $this->run($command, $assessment, Outcome::RanUnderGrant, $run);
+                return $this->run($command, $assessment, Outcome::RanUnderGrant, $run);
+            }
+            $miss = GrantMiss::rateLimited($rateLimit->getLimit());
         }
 
         $decision = $this->approvals->answer($context, $command, $assessment->verdict);

@@ -74,7 +74,7 @@ video: <https://youtu.be/ve3vKHaWW2k>. If something fails, `airlock doctor` says
 - **Calibration with the same classes.** `airlock configure` lists an API's models and keeps the ones that flag a
   known injection and pass a clean output, using the server's own classifier: `src/Command/ConfigureCommand.php`.
 
-How each MUST and SHOULD of the MCP spec on tools, elicitation and request state is met, and the one that is not:
+How each MUST and SHOULD of the MCP spec on tools, elicitation and request state is met, and what is left:
 [mcp-spec.md](mcp-spec.md).
 
 ## Craft
@@ -89,5 +89,5 @@ Each decision and what was rejected: [decisions.md](decisions.md). The modules a
 - An agent that keeps its client's own shell tool can run anything without Airlock. `airlock connect` turns it off
   where the client's files allow it; Cursor's cannot be.
 - A command reaching a git or SSH remote reaches any host ([network.md](network.md)).
-- No Windows. No rate limit on granted commands.
+- No Windows.
 - Airlock protects you from what your agent read, not a machine from its owner.

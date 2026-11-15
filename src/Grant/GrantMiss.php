@@ -28,4 +28,9 @@ final readonly class GrantMiss
     {
         return new self('Asked again: a part of this line can change the files another part runs before it reads them, so no grant covers it.');
     }
+
+    public static function rateLimited(int $limit): self
+    {
+        return new self(\sprintf('Asked again: grants have run %d commands in the last minute without asking, the most they may.', $limit));
+    }
 }
