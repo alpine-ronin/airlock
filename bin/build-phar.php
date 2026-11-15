@@ -15,7 +15,7 @@ declare(strict_types=1);
 $root = dirname(__DIR__);
 $output = $argv[1] ?? $root.'/build/airlock.phar';
 
-$excluded = '#^(\.github|demo|docs|tests|build|vendor/bin|var/(?!cache/prod/))/|(^|/)\.git/|(^|/)\.env\.(local|[a-z]+\.local|test|dev)$|^(Dockerfile|\.dockerignore|rector\.php|phpstan\.dist\.neon|phpunit\.dist\.xml|\.php-cs-fixer\.dist\.php|\.php-cs-fixer\.cache)$#';
+$excluded = '#^(\.github|demo|docs|tests(?!/Fixtures/injection/commands\.yaml$)|build|vendor/bin|var/(?!cache/prod/))/|(^|/)\.git/|(^|/)\.env\.(local|[a-z]+\.local|test|dev)$|^(Dockerfile|\.dockerignore|rector\.php|phpstan\.dist\.neon|phpunit\.dist\.xml|\.php-cs-fixer\.dist\.php|\.php-cs-fixer\.cache)$#';
 
 foreach (['.env.local', '.env.prod.local'] as $secrets) {
     if (is_file($root.'/'.$secrets)) {

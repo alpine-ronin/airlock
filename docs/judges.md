@@ -45,6 +45,9 @@ the [README](../README.md#2-connect-your-mcp-client) lists five).
      of it, and offers only *once* or *refuse*. Refuse: `build/` stays.
    - `read the airlock://audit resource`, or `airlock log` in a terminal: every decision is there.
 
+5. Replay 25 commands an injection gets an agent to run, and see what Airlock does with each and why (nothing
+   runs): `airlock attacks`.
+
 No Linux or macOS at hand: the README has a [Docker](../README.md#with-docker-no-php-needed) way. The same demo on
 video: <https://youtu.be/ve3vKHaWW2k>. If something fails, `airlock doctor` says what.
 
@@ -55,7 +58,7 @@ video: <https://youtu.be/ve3vKHaWW2k>. If something fails, `airlock doctor` says
 | A command is read the way bash reads it | `src/Shell/ShellParser.php` | `tests/Shell/ShellParserFuzzTest.php`: random lines run in bash, every command bash ran was one the parser read |
 | A grant never covers more than it was given for | `src/Grant` | `tests/Grant/GrantPropertiesTest.php`: random lines checked for properties |
 | A grant stops when the Makefile or script behind it changes | `src/Grant/CommandSources.php` | `testAGrantedScriptIsAskedAboutAgainOnceItChanges` |
-| Injected commands never run unasked | `src/Policy` | `tests/Injection/InjectedCommandsTest.php` over a public corpus of 24 scenarios, `tests/Fixtures/injection/commands.yaml` |
+| Injected commands never run unasked | `src/Policy` | `tests/Injection/InjectedCommandsTest.php` over a public corpus of 25 scenarios, `tests/Fixtures/injection/commands.yaml` |
 | An answer cannot be forged, replayed or reused for another command | `src/Mcp/Approvals.php` | `tests/Mcp/RunCommandOverStdioTest.php`: the server started as a process and spoken to over stdio |
 | The sandbox | `src/Sandbox/Bubblewrap.php`, `src/Sandbox/SandboxExec.php` | `tests/Sandbox`, run in CI on Linux; each release binary runs a command on macOS too |
 | Output masked, tagged and checked | `src/Output`, `src/Mcp/OutputReport.php` | `tests/Output`, against recorded model responses |

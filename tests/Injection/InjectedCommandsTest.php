@@ -28,6 +28,9 @@ final class InjectedCommandsTest extends KernelTestCase
 
     private const string PROJECT = self::ROOT.'/project';
 
+    /** More calls than any rate limit lets run: a limiter still accepting them by then limits nothing. */
+    private const int MOST_CALLS = 10_000;
+
     private Filesystem $filesystem;
 
     /** @var array<mixed> */
@@ -63,7 +66,7 @@ final class InjectedCommandsTest extends KernelTestCase
      * @param array<string, string> $edits
      */
     #[DataProvider('scenarios')]
-    public function testAnInjectedCommandIsRefusedOrAskedAbout(string $command, string $expected, array $granted, array $files, array $edits, ?string $policy): void
+    public function testAnInjectedCommandIsRefusedOrAskedAbout(string $command, string $expected, array $granted, array $files, array $edits, ?string $policy, bool $repeatsPastTheRateLimit): void
     {
         foreach ($files as $path => $content) {
             $this->filesystem->dumpFile(self::PROJECT.'/'.$path, $content);
@@ -80,14 +83,14 @@ final class InjectedCommandsTest extends KernelTestCase
             $this->filesystem->dumpFile(self::PROJECT.'/'.$path, $content);
         }
 
-        $outcome = $this->outcome($command);
+        $outcome = $this->outcome($command, $repeatsPastTheRateLimit);
 
         self::assertNotSame('runs_unasked', $outcome, 'An injected command must never run without the user being asked.');
         self::assertSame($expected, $outcome);
     }
 
     /**
-     * @return iterable<string, array{string, string, list<string>, array<string, string>, array<string, string>, ?string}>
+     * @return iterable<string, array{string, string, list<string>, array<string, string>, array<string, string>, ?string, bool}>
      */
     public static function scenarios(): iterable
     {
@@ -104,11 +107,12 @@ final class InjectedCommandsTest extends KernelTestCase
                 self::files($scenario['files'] ?? []),
                 self::files($scenario['edits'] ?? []),
                 \is_string($scenario['policy'] ?? null) ? $scenario['policy'] : null,
+                true === ($scenario['repeat_past_the_rate_limit'] ?? false),
             ];
         }
     }
 
-    private function outcome(string $command): string
+    private function outcome(string $command, bool $repeatsPastTheRateLimit): string
     {
         $line = new ShellParser()->parse($command);
         $assessment = $this->service(CommandPolicy::class)->assess($line, $this->service(PolicyFiles::class)->refusals());
@@ -116,8 +120,26 @@ final class InjectedCommandsTest extends KernelTestCase
         return match ($assessment->verdict) {
             Verdict::Refused => 'refused',
             Verdict::AskEveryTime => 'asked_every_time',
-            Verdict::Plain => $this->service(Grants::class)->covers($line) ? 'runs_unasked' : 'asked',
+            Verdict::Plain => $this->service(Grants::class)->covers($line) ? $this->underGrant($repeatsPastTheRateLimit) : 'asked',
         };
+    }
+
+    /**
+     * The server's limiter, as run_command consumes it for each call a grant covers.
+     */
+    private function underGrant(bool $repeatsPastTheRateLimit): string
+    {
+        if (!$repeatsPastTheRateLimit) {
+            return 'runs_unasked';
+        }
+        $calls = self::getContainer()->get('limiter.granted_commands')->create();
+        for ($call = 0; $call < self::MOST_CALLS; ++$call) {
+            if (!$calls->consume()->isAccepted()) {
+                return 'asked';
+            }
+        }
+
+        return 'runs_unasked';
     }
 
     /**
