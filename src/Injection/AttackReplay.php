@@ -21,6 +21,7 @@ use App\Policy\Verdict;
 use App\Shell\ShellParser;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\RateLimiter\RateLimiterFactoryInterface;
 
 /**
  * Replays a scenario through Airlock's own parser, policy and grants, as `run_command` weighs a call, in a project and
@@ -37,6 +38,7 @@ final readonly class AttackReplay
         private ShellParser $parser,
         private SecretFiles $secretFiles,
         private LockFactory $lockFactory,
+        private RateLimiterFactoryInterface $grantedCommandsLimiter,
         private Filesystem $filesystem = new Filesystem(),
     ) {
     }
@@ -79,9 +81,29 @@ final readonly class AttackReplay
             Verdict::Refused => new ReplayResult($scenario, ReplayOutcome::Refused, $this->inProject($project, $assessment->reasons)),
             Verdict::AskEveryTime => new ReplayResult($scenario, ReplayOutcome::AskedEveryTime, $assessment->reasons),
             Verdict::Plain => $grants->covers($line)
-                ? new ReplayResult($scenario, ReplayOutcome::RunsUnasked, [])
+                ? $this->underGrant($scenario, $root)
                 : new ReplayResult($scenario, ReplayOutcome::Asked, [$this->whyAsked($grants->miss($line))]),
         };
+    }
+
+    /**
+     * A command a grant covers runs unasked, unless the agent called it so often that the rate limit stops it: the
+     * server's own limiter, counting for this scenario alone.
+     */
+    private function underGrant(AttackScenario $scenario, string $root): ReplayResult
+    {
+        if (!$scenario->repeatsPastTheRateLimit) {
+            return new ReplayResult($scenario, ReplayOutcome::RunsUnasked, []);
+        }
+
+        $limiter = $this->grantedCommandsLimiter->create($root);
+        $limiter->consume($limiter->consume(0)->getRemainingTokens());
+        $next = $limiter->consume();
+        if ($next->isAccepted()) {
+            return new ReplayResult($scenario, ReplayOutcome::RunsUnasked, []);
+        }
+
+        return new ReplayResult($scenario, ReplayOutcome::Asked, [GrantMiss::rateLimited($next->getLimit())->reason]);
     }
 
     /**

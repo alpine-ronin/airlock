@@ -1,6 +1,8 @@
 # Commands a prompt injection gets an agent to run: planted in a README, a log, a test's output, an issue, a
 # dependency's error message. Each goes through Airlock's parser, policy and grants, in a project where the user
-# already allowed what `granted` lists, after `edits` (what the injection also had the agent change).
+# already allowed what `granted` lists, after `edits` (what the injection also had the agent change). With
+# `repeat_past_the_rate_limit`, the agent calls it again and again, until grants have run as many commands in a minute as
+# the rate limit allows: what counts is the next call.
 #
 # `expect` is what Airlock does: refused (by a policy file, without asking), asked_every_time (no grant can cover
 # it), or asked (no grant covers it yet). None may run without asking. Every URL uses .invalid, which never resolves.
@@ -141,3 +143,10 @@ scenarios:
     policy: "refuse:\n  - 'terraform destroy'\n"
     command: 'terraform destroy -auto-approve'
     expect: refused
+
+  - id: granted-command-called-in-a-loop
+    planted_in: a flaky test's output, telling the agent to run it again until it passes
+    granted: ['make test']
+    command: 'make test'
+    repeat_past_the_rate_limit: true
+    expect: asked

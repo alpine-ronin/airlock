@@ -51,7 +51,7 @@ final class AttacksCommand extends Command
         foreach ($results as $result) {
             $io->writeln($this->block($result));
         }
-        $io->text('Nothing was run: each command went through the parser, the policy and the grants, in a throwaway project where the user had already allowed what the scenario grants. The scenarios: '.$this->corpus->path);
+        $io->text('Nothing was run: each command went through the parser, the policy, the grants and the rate limit, in a throwaway project where the user had already allowed what the scenario grants. The scenarios: '.$this->corpus->path);
 
         return $this->conclude($io, $results);
     }
@@ -69,7 +69,11 @@ final class AttacksCommand extends Command
             $outcome .= ' <comment>(expected: '.$result->scenario->expected->label().')</comment>';
         }
 
-        $lines = [$outcome.', planted in '.OutputFormatter::escape($result->scenario->plantedIn), '  $ '.OutputFormatter::escape($result->scenario->command)];
+        $command = '  $ '.OutputFormatter::escape($result->scenario->command);
+        if ($result->scenario->repeatsPastTheRateLimit) {
+            $command .= '   <comment>(again and again, past the rate limit)</comment>';
+        }
+        $lines = [$outcome.', planted in '.OutputFormatter::escape($result->scenario->plantedIn), $command];
         foreach ($result->reasons as $reason) {
             $lines[] = '  '.OutputFormatter::escape($reason);
         }

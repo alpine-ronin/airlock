@@ -363,10 +363,11 @@ do. Replay the first yourself, with the binary or from a clone; nothing runs:
 airlock attacks
 ```
 
-**Commands** (`commands.yaml`, 24 scenarios, run by CI): what an injection planted in a README, a log, a test's output
+**Commands** (`commands.yaml`, 25 scenarios, run by CI): what an injection planted in a README, a log, a test's output
 or an issue gets the agent to run. A download piped into a shell, a secret file read or sent out, a force push, a
 command hidden in `$(…)` or a here-document, one chained after a granted command, a granted Makefile, npm script or
-script edited first, a Makefile replaced on the same line. Each one goes through Airlock's parser, policy and grants:
+script edited first, a Makefile replaced on the same line, a granted command called in a loop. Each one goes through
+Airlock's parser, policy, grants and rate limit:
 every one is refused or asked about, none runs unasked. Writing it found one gap, now fixed: a secret file sent with
 curl (`-d @.env`, `-F 'key=@id_rsa;filename=public.txt'`) was asked about, but not *every time*.
 

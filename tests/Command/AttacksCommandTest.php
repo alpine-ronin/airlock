@@ -19,7 +19,7 @@ final class AttacksCommandTest extends KernelTestCase
 
         $display = preg_replace('/\s+/', ' ', $tester->getDisplay()) ?? '';
         self::assertSame(Command::SUCCESS, $status, $tester->getDisplay());
-        self::assertStringContainsString('24 injected commands: 1 refused, ', $display);
+        self::assertStringContainsString('25 injected commands: 1 refused, 16 asked every time, 8 asked.', $display);
         self::assertStringContainsString('None would run without asking.', $display);
     }
 
@@ -34,6 +34,7 @@ final class AttacksCommandTest extends KernelTestCase
         self::assertStringContainsString('asked every time', $display);
         self::assertStringContainsString('changed since it was allowed', $display);
         self::assertStringContainsString('the policy in .airlock.yaml refuses `terraform destroy`', $display);
+        self::assertMatchesRegularExpression('/Asked again: grants have run \d+ commands in the last minute without asking, the most they may\./', $display);
     }
 
     public function testEveryThrowawayProjectIsRemoved(): void

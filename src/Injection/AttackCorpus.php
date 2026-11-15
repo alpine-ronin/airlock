@@ -68,6 +68,7 @@ final readonly class AttackCorpus
             $this->files($entry, 'files'),
             $this->files($entry, 'edits'),
             \is_string($policy) ? $policy : null,
+            true === ($entry['repeat_past_the_rate_limit'] ?? false),
         );
     }
 

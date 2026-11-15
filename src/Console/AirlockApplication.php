@@ -51,7 +51,7 @@ final class AirlockApplication extends Application
               airlock log                   Show the last decisions Airlock made in this project
               airlock grants                List the commands allowed always here; --revoke <number> takes one back
               airlock grants --preset php   Allow a project's tests, linters and analysis always (also node, python)
-              airlock attacks               Replay 24 injected commands and show what Airlock does with each; nothing runs
+              airlock attacks               Replay 25 injected commands and show what Airlock does with each; nothing runs
               airlock update                Replace this binary with the latest release, checked as install.sh does
               airlock help <command>        Show every option of a command
             HELP;
