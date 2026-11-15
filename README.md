@@ -24,7 +24,8 @@
   <a href="#try-the-demo">Demo</a> ·
   <a href="https://youtu.be/ve3vKHaWW2k">Video</a> ·
   <a href="#configuration">Configuration</a> ·
-  <a href="docs/design.md">Design</a>
+  <a href="docs/design.md">Design</a> ·
+  <a href="docs/judges.md">For judges</a>
 </p>
 
 ## How it works
@@ -71,11 +72,13 @@ would send to whatever host the repository names.
 
 | Document | What it covers |
 |---|---|
+| [judges.md](docs/judges.md) | For hackathon judges: running it in five minutes, and where to look in the code |
 | [design.md](docs/design.md) | The problem, what happens to a command, the protocol, what Symfony AI does, what is not in scope |
 | [architecture.md](docs/architecture.md) | The modules of `src/`, the path of one `run_command` call through them, where the tests live |
 | [decisions.md](docs/decisions.md) | Each technical and functional decision: why, and what was rejected |
 | [network.md](docs/network.md) | The registries-only network: the proxy, the hosts, what it does not stop |
 | [formats.md](docs/formats.md) | The policy, network, grants, audit and models files |
+| [mcp-spec.md](docs/mcp-spec.md) | Each MUST and SHOULD of the MCP spec on tools, elicitation and request state, and what Airlock does |
 
 ## Quick start: five minutes
 
