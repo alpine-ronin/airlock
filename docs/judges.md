@@ -45,6 +45,9 @@ the [README](../README.md#2-connect-your-mcp-client) lists five).
      of it, and offers only *once* or *refuse*. Refuse: `build/` stays.
    - `read the airlock://audit resource`, or `airlock log` in a terminal: every decision is there.
 
+5. Replay 24 commands an injection gets an agent to run, and see what Airlock does with each and why (nothing
+   runs): `airlock attacks`.
+
 No Linux or macOS at hand: the README has a [Docker](../README.md#with-docker-no-php-needed) way. The same demo on
 video: <https://youtu.be/ve3vKHaWW2k>. If something fails, `airlock doctor` says what.
 

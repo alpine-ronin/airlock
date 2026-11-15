@@ -357,7 +357,11 @@ picks; focus then goes to *Accept* by itself, so press `Enter` once more.
 ## Tested against prompt injection
 
 Two public corpora, in `tests/Fixtures/injection/`, show what Airlock does against what an injection gets an agent to
-do.
+do. Replay the first yourself, with the binary or from a clone; nothing runs:
+
+```bash
+airlock attacks
+```
 
 **Commands** (`commands.yaml`, 24 scenarios, run by CI): what an injection planted in a README, a log, a test's output
 or an issue gets the agent to run. A download piped into a shell, a secret file read or sent out, a force push, a
