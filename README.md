@@ -386,6 +386,7 @@ variables, which win.
 |---|---|---|
 | `AIRLOCK_SANDBOX` | `auto` | `auto` (sandboxed, reaching only the package registries and the hosts `network.yaml` allows, through a proxy Airlock starts per command; a command that reaches a git or SSH remote still reaches any host), `open` (sandboxed, any host: before 0.6.0, what `auto` did), `strict` (sandboxed, no network) or `off`. `registries` is another name for `auto`. With `open`, `airlock doctor` warns that commands can reach any host |
 | `AIRLOCK_TIMEOUT` | `120` | Seconds a command may run before it is stopped |
+| `AIRLOCK_RATE_LIMIT` | `settings.yaml`, else `30` | Commands grants may run in a minute without asking; past it, each one is asked again. Set it with `airlock configure rate_limit=5` |
 | `AIRLOCK_PROJECT_DIR` | the current directory | The project commands run in |
 | `AIRLOCK_STATE_KEY` | a key per process | Signs the state a pending approval carries; at least 32 bytes |
 | `AIRLOCK_AI_BASE_URL` | `models.yaml`, else checks off | The chat completions API, without `/v1/chat/completions` |

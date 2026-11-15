@@ -276,6 +276,31 @@ final class RunCommandOverStdioTest extends TestCase
         self::assertStringContainsString('Asked again: what it runs depends on "run.sh", which changed since it was allowed', $this->text($form, 'message'));
     }
 
+    public function testPastTheRateLimitAGrantedCommandIsAskedAgain(): void
+    {
+        $client = $this->client(['AIRLOCK_RATE_LIMIT' => '2']);
+        $client->request($this->modernCall(2, self::COMMAND, 'session', $this->askState($client, self::COMMAND)));
+        $client->request($this->modernCall(3, self::COMMAND));
+        $second = $client->request($this->modernCall(4, self::COMMAND));
+
+        $form = $this->firstForm($client, self::COMMAND);
+
+        self::assertSame($this->report("ran\nran\nran\n"), $this->text($second, 'result', 'content', 0, 'text'), 'The grant runs the command up to the limit, the approved run not counted.');
+        self::assertStringContainsString('Asked again: grants have run 2 commands in the last minute without asking, the most they may.', $this->text($form, 'message'));
+    }
+
+    public function testPastTheRateLimitAirlockConfigureSavedAnApprovedCommandStillRuns(): void
+    {
+        $this->filesystem->dumpFile($this->home.'/.config/airlock/settings.yaml', "rate_limit: 1\n");
+        $client = $this->client();
+        $client->request($this->modernCall(2, self::COMMAND, 'session', $this->askState($client, self::COMMAND)));
+        $client->request($this->modernCall(3, self::COMMAND));
+
+        $answer = $client->request($this->modernCall(5, self::COMMAND, 'once', $this->askState($client, self::COMMAND)));
+
+        self::assertSame($this->report("ran\nran\nran\n"), $this->text($answer, 'result', 'content', 0, 'text'));
+    }
+
     public function testWithoutASandboxAGrantForThisProjectRunsNothingWithoutAsking(): void
     {
         $client = $this->client(['AIRLOCK_SANDBOX' => 'off']);

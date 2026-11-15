@@ -10,17 +10,22 @@ use App\Configuration\InjectionSample;
 use App\Configuration\InjectionSamples;
 use App\Configuration\InvalidModelSettingsException;
 use App\Configuration\InvalidSamplesException;
+use App\Configuration\InvalidSettingsException;
 use App\Configuration\ModelCalibrator;
 use App\Configuration\ModelList;
 use App\Configuration\ModelPreference;
 use App\Configuration\ModelSettings;
 use App\Configuration\ModelSettingsFile;
+use App\Configuration\Setting;
+use App\Configuration\Settings;
+use App\Configuration\SettingsFile;
 use App\Output\NotCheckedReason;
 use App\Output\OutputCheck;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\MissingInputException;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -32,8 +37,9 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * Sets up the model checks in a terminal, never through the agent: the API and its key, then the models, found by
  * calibrating what the API lists (one model fit for both checks first, else the first fit for each; with --fastest, the
  * fastest of those among every model calibrated), or asked for when none passes. Writes them to `models.yaml`.
+ * Given `name=value` arguments instead, saves those settings to `settings.yaml`.
  */
-#[AsCommand(name: 'configure', description: 'Set up the model checks: the API, its key and the models, calibrated before they are kept')]
+#[AsCommand(name: 'configure', description: 'Set up the model checks: the API, its key and the models, calibrated before they are kept; or save settings: configure rate_limit=5')]
 final class ConfigureCommand extends Command
 {
     /** How long to wait when the API's rate limit stops the calibration, before trying once more. */
@@ -46,6 +52,7 @@ final class ConfigureCommand extends Command
         private readonly ClockInterface $clock,
         private readonly EffectiveModelSettings $effectiveSettings,
         private readonly InjectionSamples $samples,
+        private readonly SettingsFile $savedSettings,
     ) {
         parent::__construct();
     }
@@ -54,6 +61,7 @@ final class ConfigureCommand extends Command
     protected function configure(): void
     {
         $this
+            ->addArgument('settings', InputArgument::IS_ARRAY, 'Settings to save instead, as name=value: '.implode(', ', array_map(static fn (Setting $setting): string => $setting->value.' ('.$setting->description().', default '.$setting->default().')', Setting::cases())))
             ->addOption('check', null, InputOption::VALUE_NONE, 'Calibrate the models the server uses (environment variables first, then models.yaml), change nothing')
             ->addOption('samples', null, InputOption::VALUE_REQUIRED, 'With --check: measure the output check on these outputs instead, a YAML file such as tests/Fixtures/injection/outputs.yaml')
             ->addOption('base-url', null, InputOption::VALUE_REQUIRED, 'The API, without /v1/chat/completions')
@@ -67,6 +75,10 @@ final class ConfigureCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $assignments = $this->assignments($input);
+        if ([] !== $assignments) {
+            return $this->saveSettings($io, $assignments);
+        }
         try {
             $current = $this->settingsFile->read();
         } catch (InvalidModelSettingsException $e) {
@@ -385,6 +397,60 @@ final class ConfigureCommand extends Command
             $calibration->riskLineFailure ?? 'passes',
             $calibration->seconds,
         ));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function assignments(InputInterface $input): array
+    {
+        $arguments = $input->getArgument('settings');
+        $assignments = [];
+        foreach (\is_array($arguments) ? $arguments : [] as $argument) {
+            if (\is_string($argument)) {
+                $assignments[] = $argument;
+            }
+        }
+
+        return $assignments;
+    }
+
+    /**
+     * @param non-empty-list<string> $assignments
+     */
+    private function saveSettings(SymfonyStyle $io, array $assignments): int
+    {
+        try {
+            $settings = $this->savedSettings->read();
+        } catch (InvalidSettingsException $e) {
+            $io->warning($e->getMessage().' It will be replaced.');
+            $settings = new Settings();
+        }
+
+        foreach ($assignments as $assignment) {
+            [$name, $value] = array_pad(explode('=', $assignment, 2), 2, '');
+            $setting = Setting::tryFrom($name);
+            if (!$setting instanceof Setting) {
+                $known = implode(', ', array_map(static fn (Setting $setting): string => $setting->value, Setting::cases()));
+                $io->error(\sprintf('"%s" is not a setting; give name=value, with one of: %s. Nothing was saved.', $name, $known));
+
+                return Command::FAILURE;
+            }
+            if (1 !== preg_match('/^[1-9][0-9]{0,8}$/', $value)) {
+                $io->error(\sprintf('%s takes a positive whole number, got "%s". Nothing was saved.', $setting->value, $value));
+
+                return Command::FAILURE;
+            }
+            $settings = $settings->with($setting, (int) $value);
+        }
+
+        $this->savedSettings->write($settings);
+        foreach (Setting::cases() as $setting) {
+            $io->writeln(\sprintf('%s = %d', $setting->value, $settings->get($setting) ?? $setting->default()));
+        }
+        $io->success(\sprintf('Saved to %s. Restart your MCP client; an environment variable such as %s still wins.', $this->savedSettings->path(), Setting::RateLimit->environmentVariable()));
+
+        return Command::SUCCESS;
     }
 
     private function option(InputInterface $input, string $name): string

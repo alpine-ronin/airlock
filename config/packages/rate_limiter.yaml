@@ -1,0 +1,15 @@
+framework:
+    cache:
+        pools:
+            # One process per client over stdio: the count lives and dies with the client's session.
+            cache.granted_commands:
+                adapter: cache.adapter.array
+
+    rate_limiter:
+        # Commands a grant lets run without asking; past the limit, the user is asked again.
+        granted_commands:
+            policy: sliding_window
+            limit: '%env(int:setting:AIRLOCK_RATE_LIMIT)%'
+            interval: '1 minute'
+            cache_pool: cache.granted_commands
+            lock_factory: null
