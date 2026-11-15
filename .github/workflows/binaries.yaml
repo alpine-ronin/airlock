@@ -201,6 +201,18 @@ jobs:
                   if grep -F 'Not checked where it was built' update.txt; then exit 1; fi
                   "$copy" --version | grep -F 'v0.6.0'
 
+            # The static runtime reads its binary by path as it goes: an MCP server running from the copy that airlock update
+            # replaces keeps working, from a pin of the binary it started from. Not in /tmp, which the sandbox makes private.
+            - name: Keep a running server working through an update
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              shell: bash
+              run: |
+                  copy="$(mktemp -d -p "$RUNNER_TEMP")/airlock"
+                  cp "$GITHUB_WORKSPACE/airlock-${{ matrix.target }}" "$copy"
+                  cd "$(mktemp -d)"
+                  python3 "$GITHUB_WORKSPACE/.github/scripts/smoke.py" --between "\"$copy\" update 0.6.0 && \"$copy\" --version | grep -F v0.6.0" -- "$copy" mcp:server
+
             - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
               with:
                   name: airlock-${{ matrix.target }}

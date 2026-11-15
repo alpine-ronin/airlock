@@ -110,7 +110,8 @@ curl -fsSL https://raw.githubusercontent.com/alpine-ronin/airlock/main/install.s
 
 To update a binary installed this way, run `airlock update`: it downloads the latest release's binary and checks it
 as the install script does, then replaces itself (`airlock update 0.6.0` installs a given version). An update is not
-counted as an install. Restart your MCP client afterwards. From a clone, update with `git pull` and `composer install`;
+counted as an install. A server already running keeps working on the version it started with: restart your MCP
+client to use the new one. From a clone, update with `git pull` and `composer install`;
 with Docker, `git pull` in the clone, then build the image again.
 
 ##### Counting installs

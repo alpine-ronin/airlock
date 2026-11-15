@@ -7,8 +7,8 @@ namespace App\Update;
 /**
  * Puts a checked binary in place of the running one. The static PHP runtime reads Airlock's code from its own file, by
  * path, as it needs it: once that file is replaced, this process would read the new binary at the old one's offsets.
- * So this process becomes mv, and no more of Airlock's code runs after the rename. An Airlock still running from the
- * old binary, such as an MCP server, has the same problem: its client has to restart it.
+ * So this process becomes mv, and no more of Airlock's code runs after the rename. An MCP server still running has the
+ * same problem: it runs from a pin of the old binary (RunningBinaryPin) until its client restarts it.
  */
 final readonly class RunningBinaryReplacer
 {
