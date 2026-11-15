@@ -3,6 +3,31 @@
 What changed in each release, newest first. Versions follow [semantic versioning](https://semver.org): until 1.0, a
 minor version may change the configuration and file formats.
 
+## 0.7.0 (2026-11-15)
+
+### Added
+
+- Granted commands run at most 30 a minute without asking (a sliding window per client process). Past it, a granted
+  command goes back to the form, saying why, and an answer still runs it. Set the limit with
+  `airlock configure rate_limit=<n>`, saved to `settings.yaml` out of every command's reach; `AIRLOCK_RATE_LIMIT`
+  wins when set (#94).
+- `airlock attacks` replays the 25 scenarios of the injected commands corpus through the real parser, policy, grants
+  and rate limit, and prints what Airlock does with each and why. Nothing runs; it exits non-zero if a command would
+  run unasked (#95).
+- `docs/judges.md`, from a clone to a running demo in a few minutes, and `docs/mcp-spec.md`, each MUST and SHOULD of
+  the MCP specification on tools, elicitation and local servers, with the code and test behind it (#93).
+
+### Changed
+
+- The repository moved to `alpine-ronin/airlock`: links, `install.sh`, `airlock update` and the Composer name point
+  there. Releases up to 0.6.1 are still checked against the former owner's attestations (#90, #91).
+
+### Fixed
+
+- An MCP server keeps working when `airlock update` or `install.sh` replaces its binary: it runs from a hard link of
+  the binary it started from (`.airlock-run-<pid>` beside it), until its client restarts it. Before, it stopped on its
+  next request (#96).
+
 ## 0.6.1 (2026-11-12)
 
 ### Changed
