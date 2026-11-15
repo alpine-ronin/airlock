@@ -23,6 +23,7 @@ project overlapping that directory), a command the user allows can read and chan
 | `projects/<name>-<hash>/grants.yaml` | Airlock (`always`, `airlock grants`) | the policy, for one project |
 | `audit.jsonl`, `audit.1.jsonl` to `audit.5.jsonl` | Airlock | `airlock log`, `airlock doctor`, `airlock://audit` |
 | `models.yaml` | `airlock configure` | the model checks |
+| `settings.yaml` | `airlock configure name=value` | the server's limits |
 
 `<name>-<hash>` is the project directory's base name, with every run of characters other than `A-Z a-z 0-9 . _ -`
 replaced by `-`, then `-` and the first 12 hexadecimal characters of the SHA-256 of the project's absolute path:
@@ -135,6 +136,13 @@ Written by `airlock configure`, readable by its owner only, since it holds the A
 `AIRLOCK_OUTPUT_CHECK_MODEL` and `AIRLOCK_RISK_MODEL` win over it when they are not empty: an empty one does not clear
 the file's setting.
 
+## Settings: `settings.yaml`
+
+Written by `airlock configure name=value` (`airlock configure rate_limit=5`), which keeps the settings already there.
+Keys: `rate_limit`, a positive integer, the commands grants may run in a minute without asking (30 when absent). The
+variable `AIRLOCK_RATE_LIMIT` wins over it when it is not empty. Read when the server starts: restart the client after
+a change.
+
 ## A file Airlock cannot read
 
 | File | Not valid YAML, a wrong type, or an unknown key | Unknown key |
@@ -144,6 +152,7 @@ the file's setting.
 | `grants.yaml` | Airlock stops and names the file; it never guesses | ignored when read, and dropped the next time Airlock writes the file |
 | `audit.jsonl` | a line it cannot read is skipped by `airlock log` | ignored |
 | `models.yaml` | the model checks stay off, with a warning in the log, unless the environment sets them | ignored |
+| `settings.yaml` | every setting takes its default, with a warning in the log, unless the environment sets it | ignored |
 
 A policy fails closed on purpose: a refusal Airlock cannot read must not become a command it runs.
 

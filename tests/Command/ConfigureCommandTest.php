@@ -14,8 +14,12 @@ use App\Configuration\ModelRetries;
 use App\Configuration\ModelSetting;
 use App\Configuration\ModelSettings;
 use App\Configuration\ModelSettingsFile;
+use App\Configuration\Setting;
+use App\Configuration\Settings;
+use App\Configuration\SettingsFile;
 use App\Tests\Output\RecordedModelApi;
 use App\Tests\Output\RecordedResponses;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\AI\Platform\StructuredOutput\PlatformSubscriber;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -240,6 +244,56 @@ final class ConfigureCommandTest extends KernelTestCase
         }
     }
 
+    public function testANameValueArgumentSavesThatSettingAndAsksNothing(): void
+    {
+        $tester = $this->tester();
+
+        $status = $tester->execute(['settings' => ['rate_limit=5']]);
+
+        self::assertSame(Command::SUCCESS, $status, $tester->getDisplay());
+        self::assertSame(5, $this->savedSettings()->read()->get(Setting::RateLimit));
+        self::assertStringContainsString('rate_limit = 5', $tester->getDisplay());
+        self::assertFileDoesNotExist($this->file->path(), 'Saving a setting leaves the model checks alone.');
+    }
+
+    public function testASavedSettingIsKeptWhenAnotherIsSaved(): void
+    {
+        $this->savedSettings()->write(new Settings()->with(Setting::RateLimit, 5));
+        $tester = $this->tester();
+
+        $tester->execute(['settings' => ['rate_limit=8']]);
+
+        self::assertSame(8, $this->savedSettings()->read()->get(Setting::RateLimit));
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function wrongAssignments(): iterable
+    {
+        yield 'an unknown name' => ['rate=5', '"rate" is not a setting; give name=value, with one of: rate_limit.'];
+        yield 'no value' => ['rate_limit', 'rate_limit takes a positive whole number, got "".'];
+        yield 'zero' => ['rate_limit=0', 'rate_limit takes a positive whole number, got "0".'];
+        yield 'a word' => ['rate_limit=many', 'rate_limit takes a positive whole number, got "many".'];
+    }
+
+    #[DataProvider('wrongAssignments')]
+    public function testAWrongAssignmentSavesNothing(string $assignment, string $message): void
+    {
+        $tester = $this->tester();
+
+        $status = $tester->execute(['settings' => [$assignment]]);
+
+        self::assertSame(Command::FAILURE, $status);
+        self::assertStringContainsString($message, preg_replace('/\s+/', ' ', $tester->getDisplay()) ?? '');
+        self::assertFileDoesNotExist($this->savedSettings()->path());
+    }
+
+    private function savedSettings(): SettingsFile
+    {
+        return new SettingsFile(new ConfigDirectory('/nonexistent', self::CONFIG_HOME));
+    }
+
     /**
      * The command built by hand, on a mocked clock the recorded API moves on: the container's API answers at once.
      *
@@ -255,7 +309,7 @@ final class ConfigureCommandTest extends KernelTestCase
         $dispatcher->addSubscriber(new PlatformSubscriber());
         $calibrator = new ModelCalibrator($httpClient, $dispatcher, new ModelRetries(1), $clock);
 
-        return new CommandTester(new ConfigureCommand($this->file, new ModelList($httpClient), $calibrator, $clock, new EffectiveModelSettings('', '', '', ''), new InjectionSamples()));
+        return new CommandTester(new ConfigureCommand($this->file, new ModelList($httpClient), $calibrator, $clock, new EffectiveModelSettings('', '', '', ''), new InjectionSamples(), new SettingsFile(new ConfigDirectory('/nonexistent', self::CONFIG_HOME))));
     }
 
     private function tester(): CommandTester
