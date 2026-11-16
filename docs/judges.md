@@ -93,4 +93,6 @@ Each decision and what was rejected: [decisions.md](decisions.md). The modules a
   where the client's files allow it; Cursor's cannot be.
 - A command reaching a git or SSH remote reaches any host ([network.md](network.md)).
 - No Windows.
+- A single call larger than the pipe's buffer (about 64 KB) fails with a parse error: mcp/sdk 0.9.0 reads it in
+  pieces. Fixed in mcp/sdk 0.10.0, which Airlock moves to once symfony/mcp-bundle supports it.
 - Airlock protects you from what your agent read, not a machine from its owner.
