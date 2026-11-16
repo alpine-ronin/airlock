@@ -11,6 +11,8 @@ namespace App\Update;
  */
 final readonly class BinaryUpdater
 {
+    private const string DOWNLOAD_PREFIX = '.airlock-update-';
+
     public function __construct(
         private Releases $releases,
         private AttestationCheck $attestationCheck,
@@ -39,6 +41,8 @@ final readonly class BinaryUpdater
         if (!is_writable($directory)) {
             throw new UpdateFailedException(\sprintf('Airlock cannot write to %s, where %s is: run airlock update as the user who installed it.', $directory, basename($binaryPath)));
         }
+
+        $this->removeInterruptedDownloads($directory);
 
         $binary = $this->binaryName();
         $download = $this->temporaryFile($directory);
@@ -118,9 +122,23 @@ final readonly class BinaryUpdater
         }
     }
 
+    /**
+     * An update stopped while it downloads (Ctrl-C, a lost connection) leaves its download beside the binary.
+     */
+    private function removeInterruptedDownloads(string $directory): void
+    {
+        $downloads = glob($directory.'/'.self::DOWNLOAD_PREFIX.'*');
+        if (false === $downloads) {
+            return;
+        }
+        foreach ($downloads as $download) {
+            unlink($download);
+        }
+    }
+
     private function temporaryFile(string $directory): string
     {
-        $path = tempnam($directory, '.airlock-update-');
+        $path = tempnam($directory, self::DOWNLOAD_PREFIX);
         if (false === $path || \dirname($path) !== realpath($directory)) {
             throw new UpdateFailedException(\sprintf('Could not create a temporary file in %s.', $directory));
         }
