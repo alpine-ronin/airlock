@@ -3,6 +3,18 @@
 What changed in each release, newest first. Versions follow [semantic versioning](https://semver.org): until 1.0, a
 minor version may change the configuration and file formats.
 
+## 0.7.1 (2026-11-16)
+
+### Fixed
+
+- `airlock update` removes the `.airlock-update-*` download that an interrupted update left beside the binary (#99).
+
+### Changed
+
+- `docs/judges.md` lists a known limit: a single call larger than the pipe's buffer (about 64 KB) fails with a parse
+  error, as mcp/sdk 0.9.0 reads it in pieces. Fixed in mcp/sdk 0.10.0, which Airlock moves to once
+  symfony/mcp-bundle supports it (#100).
+
 ## 0.7.0 (2026-11-15)
 
 ### Added
