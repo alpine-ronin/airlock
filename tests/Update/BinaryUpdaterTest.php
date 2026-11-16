@@ -63,6 +63,19 @@ final class BinaryUpdaterTest extends TestCase
         self::assertNotContains('https://api.github.com/repos/alpine-ronin/airlock/releases/latest', $this->requestedUrls);
     }
 
+    public function testTheDownloadOfAnInterruptedUpdateIsRemovedByTheNextOne(): void
+    {
+        file_put_contents(self::ROOT.'/bin/.airlock-update-interrupted', 'half a binary');
+        file_put_contents(self::ROOT.'/bin/.airlock-run-4242', 'old');
+
+        $update = $this->updater($this->release('v2.0.0', 'new'))->toLatest(self::BINARY, 'v1.0.0');
+
+        self::assertNotNull($update->checkedBinary);
+        self::assertFileDoesNotExist(self::ROOT.'/bin/.airlock-update-interrupted');
+        self::assertFileExists(self::ROOT.'/bin/.airlock-run-4242', 'a pin is left to the server it runs');
+        self::assertFileExists($update->checkedBinary);
+    }
+
     public function testABinaryThatDoesNotMatchItsChecksumIsRefused(): void
     {
         $responses = $this->release('v2.0.0', 'new');
