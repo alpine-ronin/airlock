@@ -28,6 +28,23 @@
   <a href="docs/judges.md">For judges</a>
 </p>
 
+## Why Airlock
+
+Your coding agent reads text you did not write: a README, a log, an issue, a test's output. One line in it, written for
+the agent, is enough to make it run a command with your rights: a download piped into a shell, your SSH key sent out,
+a force push. [`demo/README.md`](demo/README.md) holds such a line.
+
+Airlock is the door between the agent and your shell, and it closes behind every command:
+
+- **The agent cannot answer for you.** You approve in a form in your client. Your answer comes back signed, for that
+  exact command, and counts once: a forged or replayed answer, or one given for another command, is no approval.
+- **What you allow still runs confined**, in a sandbox that writes only to the project, cannot read your keys, and on
+  the network reaches the package registries.
+- **What comes back is data**: marked as such, its secrets masked, and checked by a model for prompt injection.
+
+Guards inside an application decide which of its tools an agent may call. Airlock works one layer down, on the command
+itself, on your machine, for any MCP client.
+
 ## How it works
 
 Any MCP client connects to Airlock like to any MCP server: Claude Code, Cursor, VS Code, Zed… Every command the agent
