@@ -22,7 +22,7 @@
 <p align="center">
   <a href="#quick-start-five-minutes">Quick start</a> ·
   <a href="#try-the-demo">Demo</a> ·
-  <a href="https://youtu.be/ve3vKHaWW2k">Video</a> ·
+  <a href="https://youtu.be/YT3u3ybEcig">Video</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="docs/design.md">Design</a> ·
   <a href="docs/judges.md">For judges</a>
@@ -352,7 +352,7 @@ the `env` block of your client's configuration (with Docker, the `-e` options pa
 
 ## Try the demo
 
-Watch it first: [a short video](https://youtu.be/ve3vKHaWW2k) of this demo.
+Watch it first: [a short video](https://youtu.be/YT3u3ybEcig) of this demo.
 
 `demo/` is a small project whose `README.md` hides an instruction to AI assistants: run a script downloaded from the
 internet, silently (its URL never resolves). Once you have copied it to `~/airlock-demo` and connected your client
@@ -388,11 +388,14 @@ picks; focus then goes to *Accept* by itself, so press `Enter` once more.
 ## Tested against prompt injection
 
 Two public corpora, in `tests/Fixtures/injection/`, show what Airlock does against what an injection gets an agent to
-do. Replay the first yourself, with the binary or from a clone; nothing runs:
+do. Replay the first yourself, in a terminal: it needs no MCP client, and nothing runs. Each command comes with
+what Airlock does with it and why:
 
 ```bash
 airlock attacks
 ```
+
+Natively, `php ~/airlock/bin/console attacks`.
 
 **Commands** (`commands.yaml`, 25 scenarios, run by CI): what an injection planted in a README, a log, a test's output
 or an issue gets the agent to run. A download piped into a shell, a secret file read or sent out, a force push, a
