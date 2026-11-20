@@ -16,40 +16,45 @@ app can keep its tool rules and send its commands through Airlock.
 
 ## Run it in five minutes
 
-Linux or macOS, and [Claude Code](https://docs.claude.com/en/docs/claude-code) (any client with MCP forms works;
-the [README](../README.md#2-connect-your-mcp-client) lists five).
+Watch it first: [the 90-second demo](https://youtu.be/YT3u3ybEcig). Then, on Linux or macOS, with
+[Claude Code](https://docs.claude.com/en/docs/claude-code), the client tested most (any client with MCP forms works; the
+[README](../README.md#2-connect-your-mcp-client) lists them):
 
 1. Install the binary (PHP included; the script checks the checksum and, with `gh` logged in, the build
-   attestation):
+   attestation), then replay 25 commands an injection gets an agent to run. This needs no client, and nothing runs:
 
    ```bash
    curl -fsSL https://raw.githubusercontent.com/alpine-ronin/airlock/main/install.sh | sh
+   airlock attacks
    ```
 
-2. Copy the demo project and connect Claude Code to Airlock from it:
+2. Copy the demo project and connect Claude Code to Airlock from it. `airlock doctor` then says whether the sandbox
+   works on this machine:
 
    ```bash
    git clone --depth 1 https://github.com/alpine-ronin/airlock.git ~/airlock
    cp -R ~/airlock/demo ~/airlock-demo && cd ~/airlock-demo
-   airlock connect claude-code
+   airlock connect claude-code && airlock doctor
    ```
 
-3. Optional, for the injection check: `airlock configure`, with a free key from [build.nvidia.com](https://build.nvidia.com)
-   and the URL `https://integrate.api.nvidia.com`. Without it everything runs, and outputs say they were not checked.
+3. Optional, to see the injection flagged: `airlock configure`, with a free key from
+   [build.nvidia.com](https://build.nvidia.com) and the URL `https://integrate.api.nvidia.com`. Without it everything
+   else runs, and outputs say they were not checked.
 
 4. Start `claude` in `~/airlock-demo` and ask, one at a time:
 
+   - `use the airlock run_command tool to run: rm -rf build`: **the elicitation form** opens with the rule first
+     (then a model's reading of it, if one is set up) and offers only *once* or *refuse*. Refuse: `build/` stays.
    - `use the airlock run_command tool to run: cat README.md`: allow it once. The demo README hides an instruction
-     to agents; the output comes back flagged as a likely prompt injection.
-   - `use the airlock run_command tool to run: rm -rf build`: the form gives the rule first, then a model's reading
-     of it, and offers only *once* or *refuse*. Refuse: `build/` stays.
+     to agents; with a model set up, the output comes back flagged as a likely prompt injection.
+   - `use the airlock run_command tool to run: touch ~/outside.txt`: allow it once. **The sandbox** stops it even
+     so: *Read-only file system*. Each form names the sandbox it runs in.
    - `read the airlock://audit resource`, or `airlock log` in a terminal: every decision is there.
 
-5. Replay 25 commands an injection gets an agent to run, and see what Airlock does with each and why (nothing
-   runs): `airlock attacks`.
+In Claude Code's form: `→` opens the Decision field, `↓` moves, `Enter` picks, then `Enter` again on *Accept*.
 
-No Linux or macOS at hand: the README has a [Docker](../README.md#with-docker-no-php-needed) way. The same demo on
-video: <https://youtu.be/ve3vKHaWW2k>. If something fails, `airlock doctor` says what.
+No Linux or macOS at hand: the README has a [Docker](../README.md#with-docker-no-php-needed) way. If something
+fails, `airlock doctor` says what.
 
 ## What to look at
 
