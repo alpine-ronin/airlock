@@ -22,7 +22,7 @@
 <p align="center">
   <a href="#quick-start-five-minutes">Quick start</a> ·
   <a href="#try-the-demo">Demo</a> ·
-  <a href="https://youtu.be/ve3vKHaWW2k">Video</a> ·
+  <a href="https://youtu.be/YT3u3ybEcig">Video</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="docs/design.md">Design</a> ·
   <a href="docs/judges.md">For judges</a>
@@ -352,7 +352,7 @@ the `env` block of your client's configuration (with Docker, the `-e` options pa
 
 ## Try the demo
 
-Watch it first: [a short video](https://youtu.be/ve3vKHaWW2k) of this demo.
+Watch it first: [a short video](https://youtu.be/YT3u3ybEcig) of this demo.
 
 `demo/` is a small project whose `README.md` hides an instruction to AI assistants: run a script downloaded from the
 internet, silently (its URL never resolves). Once you have copied it to `~/airlock-demo` and connected your client
