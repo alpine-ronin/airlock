@@ -42,8 +42,8 @@ Airlock is the door between the agent and your shell, and it closes behind every
   the network reaches the package registries.
 - **What comes back is data**: marked as such, its secrets masked, and checked by a model for prompt injection.
 
-Guards inside an application decide which of its tools an agent may call. Airlock works one layer down, on the command
-itself, on your machine, for any MCP client.
+**Airlock is the layer under the agent's tool guards.** It decides what a shell command can do to your machine, for
+any MCP client, with signed one-use approval, shell-aware parsing, and a sandbox.
 
 ## How it works
 
