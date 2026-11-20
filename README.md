@@ -388,11 +388,14 @@ picks; focus then goes to *Accept* by itself, so press `Enter` once more.
 ## Tested against prompt injection
 
 Two public corpora, in `tests/Fixtures/injection/`, show what Airlock does against what an injection gets an agent to
-do. Replay the first yourself, with the binary or from a clone; nothing runs:
+do. Replay the first yourself, in a terminal: it needs no MCP client, and nothing runs. Each command comes with
+what Airlock does with it and why:
 
 ```bash
 airlock attacks
 ```
+
+Natively, `php ~/airlock/bin/console attacks`.
 
 **Commands** (`commands.yaml`, 25 scenarios, run by CI): what an injection planted in a README, a log, a test's output
 or an issue gets the agent to run. A download piped into a shell, a secret file read or sent out, a force push, a
